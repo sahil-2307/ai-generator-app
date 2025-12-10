@@ -1,0 +1,27 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "env": {
+    "NEXT_PUBLIC_APP_URL": "https://theaivault.vercel.app",
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "src/app/api/**": {
+      "maxDuration": 300
+    }
+  },
+  "regions": ["bom1"],
+  "redirects": [
+    {
+      "source": "/payment-success",
+      "destination": "/?payment=success",
+      "permanent": false
+    },
+    {
+      "source": "/payment-demo",
+      "destination": "/?payment=demo",
+      "permanent": false
+    }
+  ]
+}
