@@ -122,6 +122,34 @@ export async function POST(request: NextRequest) {
       const imageUrl = response.data?.[0]?.url
 
       if (imageUrl) {
+        // Store in S3 if configured
+        let s3Result = null
+        console.log('S3 Configuration Check for Image:')
+        console.log('AWS_ACCESS_KEY_ID exists:', !!process.env.AWS_ACCESS_KEY_ID)
+        console.log('AWS_SECRET_ACCESS_KEY exists:', !!process.env.AWS_SECRET_ACCESS_KEY)
+        console.log('AWS_S3_BUCKET exists:', !!process.env.AWS_S3_BUCKET)
+        console.log('isS3Configured():', isS3Configured())
+
+        if (isS3Configured()) {
+          try {
+            console.log('Attempting to upload image to S3...')
+            s3Result = await uploadFromUrl(userId, imageUrl, 'image', {
+              prompt,
+              style,
+              size,
+              model
+            })
+            console.log('Image uploaded to S3 successfully:', s3Result.key)
+            console.log('S3 Public URL:', s3Result.publicUrl)
+          } catch (s3Error) {
+            console.error('S3 image upload failed:', s3Error)
+            console.error('S3 Error details:', s3Error instanceof Error ? s3Error.message : s3Error)
+            // Continue without S3 - don't fail the generation
+          }
+        } else {
+          console.log('S3 not configured - skipping image upload')
+        }
+
         // Decrement user credits after successful generation
         await decrementUserCredits(userId)
         await logCreation({
@@ -129,19 +157,29 @@ export async function POST(request: NextRequest) {
           type: 'image',
           prompt,
           result_url: imageUrl,
-          metadata: { style, size, model, generatedBy: 'OpenAI DALL-E' },
+          metadata: {
+            style,
+            size,
+            model,
+            generatedBy: 'OpenAI DALL-E',
+            s3Key: s3Result?.key,
+            s3Url: s3Result?.publicUrl
+          },
           cost_credits: 1
         })
 
         return NextResponse.json({
           imageUrl,
-          downloadUrl: imageUrl,
+          downloadUrl: s3Result?.url || imageUrl,
+          storageUrl: s3Result?.publicUrl || null,
+          storageKey: s3Result?.key || null,
           metadata: {
             prompt,
             style,
             size,
             model,
             generatedBy: 'OpenAI DALL-E',
+            storedInS3: !!s3Result,
           },
         })
       }

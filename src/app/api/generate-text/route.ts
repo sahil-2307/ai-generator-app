@@ -105,18 +105,31 @@ export async function POST(request: NextRequest) {
 
     // Store in S3 if configured
     let s3Result = null
+    console.log('S3 Configuration Check:')
+    console.log('AWS_ACCESS_KEY_ID exists:', !!process.env.AWS_ACCESS_KEY_ID)
+    console.log('AWS_SECRET_ACCESS_KEY exists:', !!process.env.AWS_SECRET_ACCESS_KEY)
+    console.log('AWS_S3_BUCKET exists:', !!process.env.AWS_S3_BUCKET)
+    console.log('AWS_REGION exists:', !!process.env.AWS_REGION)
+    console.log('isS3Configured():', isS3Configured())
+
     if (isS3Configured()) {
       try {
+        console.log('Attempting to upload text to S3...')
         s3Result = await uploadTextContent(userId, text, {
           prompt,
           model,
           hasImage: !!imageFile
         })
-        console.log('Text uploaded to S3:', s3Result.key)
+        console.log('Text uploaded to S3 successfully:', s3Result.key)
+        console.log('S3 Public URL:', s3Result.publicUrl)
+        console.log('S3 Signed URL:', s3Result.url)
       } catch (s3Error) {
         console.error('S3 upload failed:', s3Error)
+        console.error('S3 Error details:', s3Error instanceof Error ? s3Error.message : s3Error)
         // Continue without S3 - don't fail the generation
       }
+    } else {
+      console.log('S3 not configured - skipping upload')
     }
 
     // Decrement user credits after successful generation
