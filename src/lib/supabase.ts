@@ -200,3 +200,24 @@ export const decrementUserCredits = async (userId: string) => {
 
   return { data: updatedUser, error: fetchError }
 }
+
+// Get user's creations for gallery
+export const getUserCreations = async (userId: string, type?: 'video' | 'image' | 'text') => {
+  if (!supabaseAdmin) {
+    throw new Error('Supabase admin client not available')
+  }
+
+  let query = supabaseAdmin
+    .from('creations')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (type) {
+    query = query.eq('type', type)
+  }
+
+  const { data, error } = await query
+
+  return { data, error }
+}

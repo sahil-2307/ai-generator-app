@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, getCurrentUser, getUserProfile } from '@/lib/supabase'
 import type { User } from '@/lib/supabase'
+import Link from 'next/link'
 import {
   User as UserIcon,
   CreditCard,
@@ -14,7 +15,8 @@ import {
   Coins,
   Calendar,
   AlertTriangle,
-  Crown
+  Crown,
+  Gallery
 } from 'lucide-react'
 
 interface UserDropdownProps {
@@ -272,6 +274,14 @@ export default function UserDropdown({ onPurchase, onShowPricing, refreshTrigger
 
             {/* Actions */}
             <div className="p-5 space-y-2 border-t border-gray-100/70">
+              <Link
+                href="/gallery"
+                onClick={() => setIsOpen(false)}
+                className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-sm font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <Gallery className="w-4 h-4" />
+                View Gallery
+              </Link>
               <button
                 onClick={() => {
                   onShowPricing()
