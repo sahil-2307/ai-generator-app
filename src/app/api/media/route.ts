@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { GetObjectCommand } from '@aws-sdk/client-s3'
 
 // Initialize S3 client with error handling
 const initializeS3Client = () => {
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
     // Check environment variables first
     const s3Client = initializeS3Client()
 
-    // Function to list objects from S3 folder
+    // Function to list objects from S3 folder and generate pre-signed URLs
     const listS3Objects = async (prefix: string, type: 'video' | 'image') => {
       const command = new ListObjectsV2Command({
         Bucket: BUCKET_NAME,
@@ -39,15 +41,28 @@ export async function GET(request: NextRequest) {
 
       const response = await s3Client.send(command)
 
-      return (response.Contents || [])
+      const objects = (response.Contents || [])
         .filter(obj => obj.Key && obj.Key !== prefix) // Exclude folder itself
-        .map(obj => {
+
+      // Generate pre-signed URLs for each object
+      const objectsWithUrls = await Promise.all(
+        objects.map(async (obj) => {
           const filename = obj.Key!.split('/').pop() || obj.Key!
           const ext = filename.split('.').pop()?.toLowerCase() || ''
 
+          // Generate pre-signed URL that expires in 1 hour
+          const getObjectCommand = new GetObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: obj.Key!,
+          })
+
+          const signedUrl = await getSignedUrl(s3Client, getObjectCommand, {
+            expiresIn: 3600 // 1 hour
+          })
+
           return {
             filename,
-            url: `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${obj.Key}`,
+            url: signedUrl,
             type,
             size: obj.Size || 0,
             modified: obj.LastModified?.toISOString() || new Date().toISOString(),
@@ -55,6 +70,9 @@ export async function GET(request: NextRequest) {
             key: obj.Key
           }
         })
+      )
+
+      return objectsWithUrls
     }
 
     // Fetch images and videos from S3
