@@ -182,40 +182,58 @@ function MediaCard({ item, index, onClick, formatFileSize, formatDate }: {
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isHovered, setIsHovered] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [canPlay, setCanPlay] = useState(false)
 
-  // Auto-play videos when they're loaded
+  // Handle video loading and interaction
   useEffect(() => {
     if (item.type === 'video' && videoRef.current) {
       const video = videoRef.current
-      const playVideo = async () => {
-        try {
-          video.currentTime = 0
-          await video.play()
-        } catch (error) {
-          console.log('Auto-play prevented:', error)
-        }
+
+      const handleLoadedData = () => {
+        setIsLoaded(true)
+        setCanPlay(true)
       }
 
-      if (video.readyState >= 2) {
-        playVideo()
-      } else {
-        video.addEventListener('loadeddata', playVideo)
-        return () => video.removeEventListener('loadeddata', playVideo)
+      const handleCanPlay = () => {
+        setCanPlay(true)
+      }
+
+      const handleLoadStart = () => {
+        setIsLoaded(false)
+        setCanPlay(false)
+      }
+
+      video.addEventListener('loadeddata', handleLoadedData)
+      video.addEventListener('canplay', handleCanPlay)
+      video.addEventListener('loadstart', handleLoadStart)
+
+      return () => {
+        video.removeEventListener('loadeddata', handleLoadedData)
+        video.removeEventListener('canplay', handleCanPlay)
+        video.removeEventListener('loadstart', handleLoadStart)
       }
     }
   }, [item.type])
 
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-    if (item.type === 'video' && videoRef.current) {
-      videoRef.current.currentTime = 0
-      const playPromise = videoRef.current.play()
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log('Auto-play prevented:', error)
-        })
+  // Handle interaction to start playback
+  const handleVideoInteraction = async () => {
+    if (item.type === 'video' && videoRef.current && canPlay) {
+      const video = videoRef.current
+      try {
+        if (video.paused) {
+          video.currentTime = 0
+          await video.play()
+        }
+      } catch (error) {
+        console.log('Play failed:', error)
       }
     }
+  }
+
+  const handleMouseEnter = () => {
+    setIsHovered(true)
+    handleVideoInteraction()
   }
 
   const handleMouseLeave = () => {
@@ -235,7 +253,7 @@ function MediaCard({ item, index, onClick, formatFileSize, formatDate }: {
       className="group relative bg-black/90 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-purple-500/20 mb-4 break-inside-avoid"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={onClick}
+      onClick={item.type === 'video' ? handleVideoInteraction : onClick}
     >
       {/* Media Container - Variable Height */}
       <div className="relative overflow-hidden" style={{ aspectRatio: item.type === 'video' ? '9/16' : 'auto' }}>
@@ -248,11 +266,30 @@ function MediaCard({ item, index, onClick, formatFileSize, formatDate }: {
               muted
               loop
               playsInline
-              autoPlay
+              controls={false}
               crossOrigin="anonymous"
-              preload="metadata"
+              preload="auto"
               onError={(e) => console.log('Video load error:', e)}
+              onLoadedData={() => setIsLoaded(true)}
+              onCanPlay={() => setCanPlay(true)}
+              onLoadStart={() => {setIsLoaded(false); setCanPlay(false)}}
             />
+
+            {/* Loading indicator */}
+            {item.type === 'video' && !isLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
+              </div>
+            )}
+
+            {/* Play button overlay */}
+            {item.type === 'video' && isLoaded && !isHovered && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <div className="bg-purple-600/90 backdrop-blur-sm rounded-full p-4 shadow-lg shadow-purple-500/25">
+                  <Play className="w-8 h-8 text-white" fill="currentColor" />
+                </div>
+              </div>
+            )}
             {/* Cyberpunk Glow Effect */}
             <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 via-transparent to-cyan-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </>
