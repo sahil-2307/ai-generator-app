@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { supabase, getCurrentUser } from '@/lib/supabase'
+import { handlePaymentFlow } from '@/lib/payments'
 import UserDropdown from '@/components/UserDropdown'
 import AuthModal from '@/components/AuthModal'
 import PricingModal from '@/components/PricingModal'
@@ -242,41 +243,9 @@ export default function Home() {
     }
 
     try {
-      // Ensure user profile exists before payment
-      await createUserProfile(user)
-
-      const response = await fetch('/api/create-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          planId: planType,
-          userId: user.id,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.paymentSessionId) {
-        // Create a form to POST to Cashfree checkout
-        const form = document.createElement('form')
-        form.method = 'POST'
-        form.action = 'https://sandbox.cashfree.com/pg/view/sessions/checkout'
-        form.target = '_blank'
-
-        const sessionInput = document.createElement('input')
-        sessionInput.type = 'hidden'
-        sessionInput.name = 'payment_session_id'
-        sessionInput.value = data.paymentSessionId
-
-        form.appendChild(sessionInput)
-        document.body.appendChild(form)
-        form.submit()
-        document.body.removeChild(form)
-      }
-    } catch (error) {
-      console.error('Payment creation failed:', error)
+      await handlePaymentFlow(planType, user, createUserProfile)
+    } catch (error: any) {
+      alert(error.message || 'Payment failed. Please try again.')
     }
   }
 

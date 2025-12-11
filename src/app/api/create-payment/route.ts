@@ -98,13 +98,17 @@ export async function POST(request: NextRequest) {
     if (!cashfreeResponse.ok) {
       const errorText = await cashfreeResponse.text()
       console.error('Cashfree API Error:', errorText)
+      console.error('Response status:', cashfreeResponse.status)
+      console.error('Response headers:', Object.fromEntries(cashfreeResponse.headers))
 
       // Return a mock payment URL for demo purposes
       return NextResponse.json({
         paymentUrl: `/payment-demo?orderId=${orderId}&amount=${plan.price}&plan=${planId}`,
         orderId,
         amount: plan.price,
-        demo: true
+        demo: true,
+        error: 'Cashfree API Error',
+        details: errorText
       })
     }
 
