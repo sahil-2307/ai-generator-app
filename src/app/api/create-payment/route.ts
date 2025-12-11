@@ -79,9 +79,25 @@ export async function POST(request: NextRequest) {
     // Debug: Log the API call
     console.log('Making Cashfree API call with:')
     console.log('App ID:', CASHFREE_APP_ID)
+    console.log('Secret Key exists:', !!CASHFREE_SECRET_KEY)
+    console.log('Secret Key length:', CASHFREE_SECRET_KEY?.length)
     console.log('Secret Key (first 10 chars):', CASHFREE_SECRET_KEY?.substring(0, 10))
     console.log('Base URL:', CASHFREE_BASE_URL)
+    console.log('Environment:', process.env.NODE_ENV)
     console.log('Order Data:', JSON.stringify(orderData, null, 2))
+
+    // Check if required environment variables are present
+    if (!CASHFREE_APP_ID || !CASHFREE_SECRET_KEY) {
+      console.error('Missing required Cashfree credentials')
+      return NextResponse.json({
+        paymentUrl: `/payment-demo?orderId=${orderId}&amount=${plan.price}&plan=${planId}`,
+        orderId,
+        amount: plan.price,
+        demo: true,
+        error: 'Missing Cashfree API credentials',
+        details: 'CASHFREE_APP_ID or CASHFREE_SECRET_KEY not configured'
+      })
+    }
 
     // Make request to Cashfree
     const cashfreeResponse = await fetch(`${CASHFREE_BASE_URL}/pg/orders`, {

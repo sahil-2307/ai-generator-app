@@ -26,6 +26,12 @@ CASHFREE_WEBHOOK_SECRET=your_webhook_secret
 # App Configuration
 NEXT_PUBLIC_APP_URL=https://your-app-name.vercel.app
 NODE_ENV=production
+
+# AWS S3 Storage (Optional - for storing generated content)
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=your-bucket-name
 ```
 
 ## Deployment Steps

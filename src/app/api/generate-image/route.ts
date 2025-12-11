@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { getUserProfile, decrementUserCredits, logCreation } from '@/lib/supabase'
+import { uploadFromUrl, isS3Configured } from '@/lib/s3'
 
 // Free sample images from Unsplash with different styles and sizes
 const dummyImages = {

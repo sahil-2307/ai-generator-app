@@ -29,13 +29,15 @@ export const handlePaymentFlow = async (planType: string, user: any, createUserP
 
     if (data.demo || data.error) {
       // Handle demo mode or API errors
-      console.log('Payment in demo mode:', data)
-      if (data.paymentUrl) {
-        window.open(data.paymentUrl, '_blank')
-      } else {
-        throw new Error('Payment system is currently in demo mode. Please try again later.')
-      }
-      return
+      console.error('Payment API Error Details:', data)
+      console.error('Cashfree API Error Response:', data.details)
+
+      // Create a detailed error message for the user
+      const errorMessage = data.error === 'Cashfree API Error'
+        ? `Payment gateway error: ${data.details || 'API credentials may be invalid'}`
+        : 'Payment system is currently unavailable'
+
+      throw new Error(errorMessage)
     }
 
     if (data.paymentSessionId) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { getUserProfile, decrementUserCredits, logCreation } from '@/lib/supabase'
+import { uploadTextContent, isS3Configured } from '@/lib/s3'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -102,17 +103,43 @@ export async function POST(request: NextRequest) {
 
     const text = completion.choices[0]?.message?.content || 'No response generated'
 
+    // Store in S3 if configured
+    let s3Result = null
+    if (isS3Configured()) {
+      try {
+        s3Result = await uploadTextContent(userId, text, {
+          prompt,
+          model,
+          hasImage: !!imageFile
+        })
+        console.log('Text uploaded to S3:', s3Result.key)
+      } catch (s3Error) {
+        console.error('S3 upload failed:', s3Error)
+        // Continue without S3 - don't fail the generation
+      }
+    }
+
     // Decrement user credits after successful generation
     await decrementUserCredits(userId)
     await logCreation({
       user_id: userId,
       type: 'text',
       prompt,
-      metadata: { model, hasImage: !!imageFile, generatedBy: 'OpenAI' },
+      metadata: {
+        model,
+        hasImage: !!imageFile,
+        generatedBy: 'OpenAI',
+        s3Key: s3Result?.key,
+        s3Url: s3Result?.publicUrl
+      },
       cost_credits: 1
     })
 
-    return NextResponse.json({ text })
+    return NextResponse.json({
+      text,
+      downloadUrl: s3Result?.url || null,
+      storageKey: s3Result?.key || null
+    })
   } catch (error) {
     console.error('Text generation error:', error)
     return NextResponse.json(
