@@ -392,7 +392,7 @@ export default function GalleryPage() {
                       />
                     ) : (
                       <img
-                        src={getImageUrl(selectedCreation)}
+                        src={getImageUrl(selectedCreation) || ''}
                         alt={selectedCreation.prompt}
                         className="w-full max-w-3xl mx-auto rounded-2xl shadow-xl"
                       />
@@ -401,7 +401,7 @@ export default function GalleryPage() {
                 ) : selectedCreation.type === 'video' ? (
                   <div className="relative rounded-2xl overflow-hidden shadow-lg">
                     <video
-                      src={getImageUrl(selectedCreation)}
+                      src={getImageUrl(selectedCreation) || ''}
                       controls
                       className="w-full max-w-3xl mx-auto rounded-2xl shadow-xl"
                     />
