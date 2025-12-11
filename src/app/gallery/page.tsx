@@ -290,7 +290,7 @@ export default function GalleryPage() {
                       ) : creation.type === 'video' ? (
                         <div className="w-full h-full bg-gradient-to-br from-slate-900 to-purple-900 flex items-center justify-center">
                           <video
-                            src={getImageUrl(creation)}
+                            src={getImageUrl(creation) || ''}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                             muted
                           />
