@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, type Creation } from '@/lib/supabase'
 import Image from 'next/image'
+import SignedImage from '@/components/SignedImage'
 
 export default function GalleryPage() {
   const [creations, setCreations] = useState<Creation[]>([])
@@ -69,11 +70,11 @@ export default function GalleryPage() {
   }
 
   const getImageUrl = (creation: Creation) => {
-    // Check if there's an S3 URL in metadata
-    if (creation.metadata?.s3Url) {
-      return creation.metadata.s3Url
+    // For S3 stored images, use the S3 key to get signed URL
+    if (creation.metadata?.s3Key) {
+      return null // Will be handled by SignedImage component
     }
-    // Fallback to result_url
+    // For OpenAI images or other external URLs, use the original URL
     return creation.result_url
   }
 
@@ -199,12 +200,21 @@ export default function GalleryPage() {
               >
                 <div className="aspect-square relative">
                   {creation.type === 'image' ? (
-                    <Image
-                      src={getImageUrl(creation) || '/placeholder-image.jpg'}
-                      alt={creation.prompt}
-                      fill
-                      className="object-cover"
-                    />
+                    creation.metadata?.s3Key ? (
+                      <SignedImage
+                        s3Key={creation.metadata.s3Key}
+                        alt={creation.prompt}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src={getImageUrl(creation) || '/placeholder-image.jpg'}
+                        alt={creation.prompt}
+                        fill
+                        className="object-cover"
+                      />
+                    )
                   ) : creation.type === 'video' ? (
                     <div className="w-full h-full bg-gray-900 flex items-center justify-center">
                       <video
@@ -263,11 +273,19 @@ export default function GalleryPage() {
 
               <div className="mb-4">
                 {selectedCreation.type === 'image' ? (
-                  <img
-                    src={getImageUrl(selectedCreation)}
-                    alt={selectedCreation.prompt}
-                    className="w-full max-w-2xl mx-auto rounded-lg"
-                  />
+                  selectedCreation.metadata?.s3Key ? (
+                    <SignedImage
+                      s3Key={selectedCreation.metadata.s3Key}
+                      alt={selectedCreation.prompt}
+                      className="w-full max-w-2xl mx-auto rounded-lg"
+                    />
+                  ) : (
+                    <img
+                      src={getImageUrl(selectedCreation)}
+                      alt={selectedCreation.prompt}
+                      className="w-full max-w-2xl mx-auto rounded-lg"
+                    />
+                  )
                 ) : selectedCreation.type === 'video' ? (
                   <video
                     src={getImageUrl(selectedCreation)}
