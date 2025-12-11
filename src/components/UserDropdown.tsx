@@ -16,7 +16,7 @@ import {
   Calendar,
   AlertTriangle,
   Crown,
-  Gallery
+  Images
 } from 'lucide-react'
 
 interface UserDropdownProps {
@@ -279,7 +279,7 @@ export default function UserDropdown({ onPurchase, onShowPricing, refreshTrigger
                 onClick={() => setIsOpen(false)}
                 className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-sm font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2"
               >
-                <Gallery className="w-4 h-4" />
+                <Images className="w-4 h-4" />
                 View Gallery
               </Link>
               <button
