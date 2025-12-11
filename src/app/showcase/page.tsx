@@ -183,6 +183,28 @@ function MediaCard({ item, index, onClick, formatFileSize, formatDate }: {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isHovered, setIsHovered] = useState(false)
 
+  // Auto-play videos when they're loaded
+  useEffect(() => {
+    if (item.type === 'video' && videoRef.current) {
+      const video = videoRef.current
+      const playVideo = async () => {
+        try {
+          video.currentTime = 0
+          await video.play()
+        } catch (error) {
+          console.log('Auto-play prevented:', error)
+        }
+      }
+
+      if (video.readyState >= 2) {
+        playVideo()
+      } else {
+        video.addEventListener('loadeddata', playVideo)
+        return () => video.removeEventListener('loadeddata', playVideo)
+      }
+    }
+  }, [item.type])
+
   const handleMouseEnter = () => {
     setIsHovered(true)
     if (item.type === 'video' && videoRef.current) {
@@ -226,22 +248,11 @@ function MediaCard({ item, index, onClick, formatFileSize, formatDate }: {
               muted
               loop
               playsInline
+              autoPlay
               crossOrigin="anonymous"
-              preload="none"
-              onLoadedData={() => {
-                if (videoRef.current) {
-                  videoRef.current.currentTime = 0
-                }
-              }}
+              preload="metadata"
               onError={(e) => console.log('Video load error:', e)}
             />
-            {!isHovered && (
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-center justify-center">
-                <div className="bg-purple-600/90 backdrop-blur-sm rounded-full p-4 shadow-lg shadow-purple-500/25">
-                  <Play className="w-8 h-8 text-white" fill="currentColor" />
-                </div>
-              </div>
-            )}
             {/* Cyberpunk Glow Effect */}
             <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 via-transparent to-cyan-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </>
@@ -258,53 +269,8 @@ function MediaCard({ item, index, onClick, formatFileSize, formatDate }: {
           </>
         )}
 
-        {/* Cyberpunk Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4">
-          <div className="text-white">
-            {/* Title */}
-            <h3 className="font-bold text-lg mb-1 text-cyan-400 drop-shadow-lg">
-              {item.filename.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-            </h3>
-
-            {/* Type & Description */}
-            <p className="text-gray-300 text-sm mb-2">
-              {item.type === 'video' ? 'AI Generated Video Content' : 'AI Generated Artwork'}
-            </p>
-
-            {/* Stats */}
-            <div className="flex items-center space-x-4 text-xs text-purple-300">
-              <div className="flex items-center space-x-1">
-                <Eye className="w-3 h-3" />
-                <span>{Math.floor(Math.random() * 999) + 100}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Download className="w-3 h-3" />
-                <span>{Math.floor(Math.random() * 2000) + 500}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Calendar className="w-3 h-3" />
-                <span>{formatDate(item.modified)}</span>
-              </div>
-            </div>
-
-            {/* Creator */}
-            <p className="text-gray-400 text-xs mt-1">by AI Vault</p>
-          </div>
-        </div>
       </div>
 
-      {/* Enhanced Type Badge */}
-      <div className="absolute top-3 right-3">
-        <span className={`
-          px-3 py-2 rounded-lg text-xs font-bold backdrop-blur-sm border border-cyan-400/30 shadow-lg
-          ${item.type === 'video'
-            ? 'bg-purple-600/90 text-cyan-300 shadow-purple-500/25'
-            : 'bg-blue-600/90 text-cyan-300 shadow-blue-500/25'
-          }
-        `}>
-          {item.type === 'video' ? 'VIDEO' : 'IMAGE'}
-        </span>
-      </div>
     </motion.div>
   )
 }
