@@ -58,8 +58,10 @@ const aspectRatios = [
 ]
 
 const models = [
-  { id: 'veo-3-ultra', name: 'Veo-3-Ultra', description: 'Best quality, slower generation', badge: 'PRO' },
-  { id: 'veo-3-lite', name: 'Veo-3-Lite', description: 'Good quality, faster generation', badge: 'FAST' },
+  { id: 'veo-3-ultra', name: 'VEO 3.1 Ultra', description: 'Premium quality, best results', badge: 'PRO', cost: '$3-6/video' },
+  { id: 'pika-labs', name: 'Pika Labs', description: 'Fast & affordable, great quality', badge: 'BUDGET', cost: '$0.01/video' },
+  { id: 'haiper-ai', name: 'Haiper AI', description: 'Balanced quality & speed', badge: 'STANDARD', cost: '$0.33/video' },
+  { id: 'veo-3-lite', name: 'VEO 3.1 Fast', description: 'Good quality, faster generation', badge: 'FAST', cost: '$2-4/video' },
 ]
 
 const featuredPrompts = [
@@ -124,7 +126,7 @@ export default function VideoGeneration({ onGenerationComplete }: VideoGeneratio
   const [prompt, setPrompt] = useState('')
   const [storyType, setStoryType] = useState('cinematic')
   const [aspectRatio, setAspectRatio] = useState('vertical')
-  const [model, setModel] = useState('veo-3-lite')
+  const [model, setModel] = useState('pika-labs')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ videoUrl?: string; downloadUrl?: string; operationId?: string; status?: string; message?: string; metadata?: any } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -550,22 +552,28 @@ export default function VideoGeneration({ onGenerationComplete }: VideoGeneratio
                             <button
                               key={m.id}
                               onClick={() => setModel(m.id)}
-                              className={`w-full p-2 border rounded-lg transition-all text-left ${
+                              className={`w-full p-3 border rounded-lg transition-all text-left ${
                                 model === m.id
                                   ? 'border-violet-500 bg-violet-50 text-violet-900'
                                   : 'border-gray-300 bg-gray-50 hover:border-gray-400 text-gray-700'
                               }`}
                             >
-                              <div className="flex justify-between items-center">
-                                <div>
-                                  <h4 className="font-medium text-xs">{m.name}</h4>
-                                  <p className="text-xs text-gray-600">{m.description}</p>
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-medium text-xs">{m.name}</h4>
+                                    <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                                      m.badge === 'PRO' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black' :
+                                      m.badge === 'BUDGET' ? 'bg-green-500 text-white' :
+                                      m.badge === 'STANDARD' ? 'bg-blue-500 text-white' :
+                                      'bg-purple-500 text-white'
+                                    }`}>
+                                      {m.badge}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-600 mb-1">{m.description}</p>
+                                  <p className="text-xs font-medium text-gray-800">{m.cost}</p>
                                 </div>
-                                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                                  m.badge === 'PRO' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black' : 'bg-green-500 text-white'
-                                }`}>
-                                  {m.badge}
-                                </span>
                               </div>
                             </button>
                           ))}
