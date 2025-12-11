@@ -60,9 +60,14 @@ export async function GET(request: NextRequest) {
             expiresIn: 3600 // 1 hour
           })
 
+          // Use proxy URL for videos to avoid CORS, signed URL for images
+          const url = type === 'video'
+            ? `/api/video/${encodeURIComponent(filename)}`
+            : signedUrl
+
           return {
             filename,
-            url: signedUrl,
+            url,
             type,
             size: obj.Size || 0,
             modified: obj.LastModified?.toISOString() || new Date().toISOString(),

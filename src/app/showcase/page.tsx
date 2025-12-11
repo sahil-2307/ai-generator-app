@@ -267,7 +267,6 @@ function MediaCard({ item, index, onClick, formatFileSize, formatDate }: {
               loop
               playsInline
               controls={false}
-              crossOrigin="anonymous"
               preload="auto"
               onError={(e) => console.log('Video load error:', e)}
               onLoadedData={() => setIsLoaded(true)}
