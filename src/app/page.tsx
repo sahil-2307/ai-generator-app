@@ -234,6 +234,9 @@ export default function HomePage() {
               <Link href="/gallery" className="text-slate-600 hover:text-purple-600 font-medium transition-colors">
                 Gallery
               </Link>
+              <Link href="/showcase" className="text-slate-600 hover:text-purple-600 font-medium transition-colors">
+                Showcase
+              </Link>
               <Link href="/text" className="text-slate-600 hover:text-purple-600 font-medium transition-colors">
                 Text
               </Link>
