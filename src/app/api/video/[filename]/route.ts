@@ -25,11 +25,12 @@ const BUCKET_NAME = process.env.AWS_S3_BUCKET || 'the-ai-vault-live'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { filename: string } }
+  { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
     const s3Client = initializeS3Client()
-    const filename = decodeURIComponent(params.filename)
+    const resolvedParams = await params
+    const filename = decodeURIComponent(resolvedParams.filename)
     const key = `Content/videos/${filename}`
 
     // Get object from S3
